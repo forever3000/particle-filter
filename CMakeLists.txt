@@ -1,4 +1,4 @@
-project(UnscentedKF)
+project(particle_filter)
 
 cmake_minimum_required (VERSION 3.5)
 
@@ -16,6 +16,6 @@ link_directories(/usr/local/opt/openssl/lib)
 link_directories(/usr/local/Cellar/libuv/1.11.0/lib)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-add_executable(UnscentedKF ${sources})
+add_executable(particle_filter ${sources})
 
-target_link_libraries(UnscentedKF z ssl uv uWS)
+target_link_libraries(particle_filter z ssl uv uWS)
