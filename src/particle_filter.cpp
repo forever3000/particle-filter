@@ -1,14 +1,15 @@
+#include "./particle_filter.h"
+
 #include <math.h>
 #include <algorithm>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <numeric>
 #include <random>
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include "./particle_filter.h"
 
 // random number engine class that generates pseudo-random numbers.
 static std::default_random_engine random_engine;
@@ -47,7 +48,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   std::normal_distribution<double> theta_norm(0, std_pos[2]);
 
   // Predict new state for each of the particles
-  for (int i = 0; i < num_particles; i++) {
+  for (size_t i = 0; i < num_particles; i++) {
     // if yaw rate is very small, assume we are traveling a straight line
     // and use simpler motion model to avoid division by zero
     if (fabs(yaw_rate) < 1e-5) {
@@ -72,13 +73,42 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted,
                                      std::vector<LandmarkObs>& observations) {
-  // TODO(liam): Find the predicted measurement that is closest to each observed
-  // measurement and assign the
-  //   observed measurement to this particular landmark.
   // NOTE: this method will NOT be called by the grading code. But you will
   // probably find it useful to
   //   implement this method and use it as a helper during the updateWeights
   //   phase.
+
+  // Find the predicted measurement that is closest to each observed
+  // measurement and assign the observed measurement to this particular
+  // landmark.
+  for (size_t i = 0; i < observations.size(); i++) {
+    // grab current observation
+    LandmarkObs o = observations[i];
+
+    // init minimum distance to maximum possible
+    double min_dist = std::numeric_limits<double>::max();
+
+    // init id of landmark from map placeholder to be associated with the
+    // observation
+    int map_id = -1;
+
+    for (unsigned int j = 0; j < predicted.size(); j++) {
+      // grab current prediction
+      LandmarkObs p = predicted[j];
+
+      // get distance between current/predicted landmarks
+      double cur_dist = dist(o.x, o.y, p.x, p.y);
+
+      // find the predicted landmark nearest the current observed landmark
+      if (cur_dist < min_dist) {
+        min_dist = cur_dist;
+        map_id = p.id;
+      }
+    }
+
+    // set the observation's id to the nearest predicted landmark's id
+    observations[i].id = map_id;
+  }
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
