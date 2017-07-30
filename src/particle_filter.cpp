@@ -10,13 +10,33 @@
 
 #include "./particle_filter.h"
 
+// random number engine class that generates pseudo-random numbers.
+static std::default_random_engine random_engine;
+
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
-  // TODO(liam): Set the number of particles. Initialize all particles to first
-  // position (based on estimates of
-  //   x, y, theta and their uncertainties from GPS) and all weights to 1.
-  // Add random Gaussian noise to each particle.
-  // NOTE: Consult particle_filter.h for more information about this method (and
-  // others in this file).
+  // Set the number of particles.
+  num_particles = 101;
+
+  // Define normal distribution values for x, y, and theta
+  std::normal_distribution<double> x_norm(0.0, std[0]);
+  std::normal_distribution<double> y_norm(0.0, std[1]);
+  std::normal_distribution<double> theta_norm(0.0, std[2]);
+
+  // Initialize all particles to first position
+  // (based on estimates of x, y, theta & their uncertainties from GPS)
+  // and all weights to 1.0
+  for (size_t i = 0; i < num_particles; i++) {
+    Particle p;
+    p.id = i;
+    p.x = x + x_norm(random_engine);
+    p.y = y + y_norm(random_engine);
+    p.theta = theta + theta_norm(random_engine);
+    p.weight = 1.0;
+
+    particles.push_back(p);
+  }
+
+  is_initialized = true;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[],
