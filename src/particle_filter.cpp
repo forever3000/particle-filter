@@ -161,7 +161,7 @@ void ParticleFilter::resample() {
   std::discrete_distribution<int> rand_index(0, num_particles - 1);
   int index = rand_index(random_engine);
 
-  //
+  // new weight distribution
   double max_weight = *std::max_element(weights.begin(), weights.end());
   std::normal_distribution<double> weights_dist(0.0, max_weight);
 
