@@ -26,7 +26,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
   // Initialize all particles to first position
   // (based on estimates of x, y, theta & their uncertainties from GPS)
   // and all weights to 1.0
-  for (size_t i = 0; i < num_particles; i++) {
+  for (size_t i = 0; i < num_particles; ++i) {
     Particle p;
     p.id = i;
     p.x = x + x_norm(random_engine);
@@ -47,7 +47,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   std::normal_distribution<double> y_norm(0, std_pos[1]);
   std::normal_distribution<double> theta_norm(0, std_pos[2]);
 
-  for (auto &p : particles) {
+  for (Particle &p : particles) {
     // if yaw rate is very small, assume we are traveling a straight line
     // and use simpler motion model to avoid division by zero
     if (fabs(yaw_rate) < 1e-5) {
@@ -73,13 +73,13 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted,
   // Find the predicted measurement that is closest to each observed
   // measurement and assign the observed measurement to this particular
   // landmark.
-  for (auto &o : observations) {
+  for (LandmarkObs &o : observations) {
     // set initial nearest distance to very large number
     double nearest_dist = std::numeric_limits<double>::max();
 
     // find the predicted landmark nearest the current observed landmark
     // and set the observation's id to the nearest predicted landmark's id
-    for (auto &p : predicted) {
+    for (LandmarkObs &p : predicted) {
       double current_dist = dist(o.x, o.y, p.x, p.y);
       if (current_dist < nearest_dist) {
         nearest_dist = current_dist;
@@ -94,7 +94,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
                                    Map map_landmarks) {
   // Update the weights of each particle using a mult-variate
   // Gaussian distribution.
-  for (auto &p : particles) {
+  for (Particle &p : particles) {
     double p_x = p.x;
     double p_y = p.y;
     double p_theta = p.theta;
@@ -113,7 +113,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
     // transform obvservations from vehicle coordinates to map coordinates
     std::vector<LandmarkObs> transformed_observations;
-    for (auto &o : observations) {
+    for (LandmarkObs &o : observations) {
       double t_x = cos(p_theta) * o.x - sin(p_theta) * o.y + p_x;
       double t_y = sin(p_theta) * o.x + cos(p_theta) * o.y + p_y;
 
@@ -122,11 +122,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
     dataAssociation(predicted, transformed_observations);
 
-    for (auto &o : transformed_observations) {
+    for (LandmarkObs &o : transformed_observations) {
       // find the (x, y) coordinates of the predicted
       // landmark associated with the current observation
       double pr_x, pr_y;
-      for (auto &pr : predicted) {
+      for (LandmarkObs &pr : predicted) {
         if (pr.id == o.id) {
           pr_x = pr.x;
           pr_y = pr.y;
@@ -137,9 +137,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       // calculate weight for this observation with multivariate Gaussian
       double std_x = std_landmark[0];
       double std_y = std_landmark[1];
-      double weight = 0.5 * M_PI * std_x * std_y *
+      double weight = (1. / (2. * M_PI * std_x * std_y)) *
                       exp(-(pow(pr_x - o.x, 2) / (2 * std_x * std_x) +
-                            (pow(pr_y - o.y, 2) / (2 * std_y * std_y))));
+                           (pow(pr_y - o.y, 2) / (2 * std_y * std_y))));
 
       // product of this observation weight with total observations weight
       p.weight *= weight;
@@ -153,7 +153,7 @@ void ParticleFilter::resample() {
 
   // get all of the current weights
   std::vector<double> weights;
-  for (auto &p : particles) {
+  for (Particle &p : particles) {
     weights.push_back(p.weight);
   }
 
@@ -166,7 +166,7 @@ void ParticleFilter::resample() {
   std::normal_distribution<double> weights_dist(0.0, max_weight);
 
   double beta = 0.0;
-  for (auto _ : particles) {
+  for (size_t i = 0; i < num_particles; ++i) {
     beta += weights_dist(random_engine) * 2.0;
     while (weights[index] < beta) {
       beta -= weights[index];
