@@ -4,6 +4,8 @@
 
 ### **Project Overview**
 
+[![Particle Filter](./assets/particle-filter.jpg)](https://youtu.be/U0F9pS6UQf4)
+
 This project contains the results from Project 3 of Term 2 in the Udacity Self-Driving Car Engineer Nanodegree.
 
 For testing, the project uses the Term 2 Simulator, which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases).
